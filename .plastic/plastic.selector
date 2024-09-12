@@ -1,4 +1,0 @@
-repository "Cel_shading_project@local"
-  path "/"
-    br "/main"
-    co "/main"
