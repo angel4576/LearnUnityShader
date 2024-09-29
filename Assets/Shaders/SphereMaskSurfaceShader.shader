@@ -19,11 +19,15 @@ Shader "Custom/SphereMaskSurfShader"
         LOD 200
 
         CGPROGRAM
+        // Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+        // #pragma exclude_renderers d3d11 gles
         // Physically based Standard lighting model, and enable shadows on all light types
         #pragma surface surf Standard fullforwardshadows
 
         // Use shader model 3.0 target, to get nicer looking lighting
         #pragma target 3.0
+
+        #include "../ShaderLib/noiseSimplex.cginc"
 
         sampler2D _MainTex;
 
@@ -47,12 +51,17 @@ Shader "Custom/SphereMaskSurfShader"
         fixed4 _Emission;
         float _NoiseSize;
 
+        // Simplex Noise Control
+        float _NoiseFrequency;
+        float _NoiseOffset;
+
         // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
         // See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
         // #pragma instancing_options assumeuniformscaling
         UNITY_INSTANCING_BUFFER_START(Props)
-            // put more per-instance properties here
+        // put more per-instance properties here
         UNITY_INSTANCING_BUFFER_END(Props)
+
 
         // Simple random noise 
         float random (float2 input) { 
@@ -68,12 +77,13 @@ Shader "Custom/SphereMaskSurfShader"
             // half grayscale = (c.r + c.g + c.b) * 0.333; // divide is slower than multiplicaitons
             // fixed3 c_grayscale = fixed3(grayscale, grayscale, grayscale);
 
-            half d = distance(_Position, IN.worldPos);
-            
             // Noise
-            // float noiseValue = random(IN.uv_MainTex * _NoiseSize) * 0.5;
-
+            float noiseValue = random(IN.uv_MainTex * _NoiseSize) * 0.5;
+            float simplexNoise = snoise(IN.worldPos) * _NoiseFrequency + _NoiseOffset;
+            
+            half d = distance(_Position, IN.worldPos) + simplexNoise;
             half sum = saturate((d - _Radius) / _Softness); // clamp to 0-1
+            
             if(_RevealInSphere > 0.5f)
             {
                 sum = 1 - saturate((d - _Radius) / _Softness); 
@@ -85,7 +95,6 @@ Shader "Custom/SphereMaskSurfShader"
             // Emission Noise
             float squares = step(0.5, random(floor(IN.uv_MainTex * _NoiseSize)));
             half emissionRing = step(sum - 0.1, 0.1) * squares;
-
 
             o.Albedo = c.rgb;
             o.Emission = _Emission * emissionRing;

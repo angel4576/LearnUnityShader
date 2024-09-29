@@ -158,7 +158,7 @@ Shader "Custom/PBRShader"
                 
                 // o.worldTangent = normalize(mul(unity_ObjectToWorld, float4(v.tangent.xyz, 0)).xyz);
                 o.worldTangent = UnityObjectToWorldDir(v.tangent.xyz);
-                o.worldBitangent = normalize(cross(o.worldNormal, o.worldTangent) * v.tangent.w); // ?
+                o.worldBitangent = normalize(cross(o.worldNormal, o.worldTangent) * v.tangent.w); // w is used for deciding left/right hand coordinate
 
                 return o;
             }

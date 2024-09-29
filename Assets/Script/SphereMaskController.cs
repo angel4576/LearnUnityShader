@@ -11,6 +11,9 @@ public class SphereMaskController : MonoBehaviour
     public float speed;
     public float softness;
     public float noiseSize;
+    [Range(0, 1.0f)]
+    public float noiseFrequency;
+    public float noiseOffset;
 
     // Start is called before the first frame update
     void Start()
@@ -25,6 +28,10 @@ public class SphereMaskController : MonoBehaviour
         Shader.SetGlobalFloat("_Softness", softness);
         Shader.SetGlobalVector("_Position", transform.position);
         Shader.SetGlobalFloat("_NoiseSize", noiseSize);
+
+        // Noise
+        Shader.SetGlobalFloat("_NoiseFrequency", noiseFrequency);
+        Shader.SetGlobalFloat("_NoiseOffset", noiseOffset);
 
         radius += speed * Time.deltaTime;
           

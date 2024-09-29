@@ -185,83 +185,83 @@ Shader "Custom/Outline"
             
             #endif
 
-                //return half4(1, 1, 1, 1);
-                return col;
+                return half4(1, 1, 1, 1);
+                // return col;
                 //return finalColor;
             }
 
             ENDCG
         }
 
-        // Pass
-	    // {
-	    //     Tags {"LightMode"="ForwardBase"}
+        Pass
+	    {
+	        Tags {"LightMode"="ForwardBase"}
 			 
-        //     Cull Front
+            Cull Front
             
-        //     CGPROGRAM
-        //     #pragma vertex vert
-        //     #pragma fragment frag
-        //     #include "UnityCG.cginc"
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #include "UnityCG.cginc"
 
-        //     fixed _OutlineWidth;
-        //     fixed4 _OutLineColor;
+            fixed _OutlineWidth;
+            fixed4 _OutLineColor;
 
-        //     sampler2D _MainTex;
-        //     float4 _MainTex_ST;
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
 
-        //     struct a2v 
-	    //     {
-        //         float4 vertex : POSITION;
-        //         float3 normal : NORMAL;
-        //         float2 uv : TEXCOORD0;
-        //         float4 vertColor : COLOR;
-        //         float4 tangent : TANGENT;
-        //     };
+            struct a2v 
+	        {
+                float4 vertex : POSITION;
+                float3 normal : NORMAL;
+                float2 uv : TEXCOORD0;
+                float4 vertColor : COLOR;
+                float4 tangent : TANGENT;
+            };
 
-        //     struct v2f
-	    //     {
-        //         float4 pos : SV_POSITION;
-        //         float3 vColor : COLOR;
-        //         float2 uv : TEXCOORD0;
-        //     };
+            struct v2f
+	        {
+                float4 pos : SV_POSITION;
+                float3 vColor : COLOR;
+                float2 uv : TEXCOORD0;
+            };
 
-        //     v2f vert (a2v v) 
-	    //     {
-        //         v2f o;
-		//         UNITY_INITIALIZE_OUTPUT(v2f, o);
-        //         // o.pos = UnityObjectToClipPos(float4(v.vertex.xyz + v.normal * _OutlineWidth * 0.1 ,1));//顶点沿着法线方向外扩(模型空间)
-        //         // solution: calculate in NDC space
-        //         float4 pos = UnityObjectToClipPos(v.vertex); // v in NDC
-        //         // Model -> View
-        //         float3 viewNormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal.xyz);
-        //         // View -> NDC
-        //         float3 ndcNormal = normalize(TransformViewToProjection(viewNormal.xyz)) * pos.w;//将法线变换到NDC空间
+            v2f vert (a2v v) 
+	        {
+                v2f o;
+		        UNITY_INITIALIZE_OUTPUT(v2f, o);
+                // o.pos = UnityObjectToClipPos(float4(v.vertex.xyz + v.normal * _OutlineWidth * 0.1 ,1));//顶点沿着法线方向外扩(模型空间)
+                // solution: calculate in NDC space
+                float4 pos = UnityObjectToClipPos(v.vertex); // v in NDC
+                // Model -> View
+                float3 viewNormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal.xyz);
+                // View -> NDC
+                float3 ndcNormal = normalize(TransformViewToProjection(viewNormal.xyz)) * pos.w;//将法线变换到NDC空间
                 
-        //         // Calculate screen aspect ratio in camera space
-        //         float4 nearUpperRight = mul(unity_CameraInvProjection, float4(1, 1, UNITY_NEAR_CLIP_VALUE, _ProjectionParams.y));//将近裁剪面右上角位置的顶点变换到观察空间
-        //         float aspect = abs(nearUpperRight.y / nearUpperRight.x);//求得屏幕宽高比
-        //         ndcNormal.x *= aspect;
+                // Calculate screen aspect ratio in camera space
+                float4 nearUpperRight = mul(unity_CameraInvProjection, float4(1, 1, UNITY_NEAR_CLIP_VALUE, _ProjectionParams.y));//将近裁剪面右上角位置的顶点变换到观察空间
+                float aspect = abs(nearUpperRight.y / nearUpperRight.x);//求得屏幕宽高比
+                ndcNormal.x *= aspect;
 
-        //         // outline is 2d no need to consider z (depth)
-        //         pos.xy += ndcNormal.xy * _OutlineWidth * 0.01 * v.vertColor.a; // use alpha to adjust width
-        //         o.pos = pos;
-        //         // vertex color (doesn't exist for this model)
-        //         o.vColor = v.vertColor.rgb;
+                // outline is 2d no need to consider z (depth)
+                pos.xy += ndcNormal.xy * _OutlineWidth * 0.01 * v.vertColor.a; // use alpha to adjust width
+                o.pos = pos;
+                // vertex color (doesn't exist for this model)
+                o.vColor = v.vertColor.rgb;
 
-        //         // transmit uv
-        //         o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                // transmit uv
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 
-        //         return o;
-        //     }
+                return o;
+            }
 
-        //     fixed4 frag(v2f i) : SV_TARGET 
-	    //     {   
-        //         fixed4 texColor = tex2D(_MainTex, i.uv);
-        //         return fixed4(_OutLineColor.rgb * texColor.rgb, 1.0);
-        //         // return _OutLineColor;
-        //     }
-        //     ENDCG
-        // }
+            fixed4 frag(v2f i) : SV_TARGET 
+	        {   
+                fixed4 texColor = tex2D(_MainTex, i.uv);
+                return fixed4(_OutLineColor.rgb * texColor.rgb, 1.0);
+                // return _OutLineColor;
+            }
+            ENDCG
+        }
     }
 }

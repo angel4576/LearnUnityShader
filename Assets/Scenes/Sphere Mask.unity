@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10756, guid: 0000000000000000e000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -327,7 +327,7 @@ Transform:
   m_GameObject: {fileID: 469988359}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.25, y: 0.0000009536743, z: -10.7}
+  m_LocalPosition: {x: 2.25, y: 1.02, z: -10.63}
   m_LocalScale: {x: 0.080761, y: 0.080761, z: 0.080761}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -345,12 +345,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 476fe0bd718c1534184f0687723e6427, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 3.72
+  radius: 0.01
   maxRadius: 12
   minRadius: 0.01
-  speed: -0
+  speed: 0
   softness: 0.81
-  noiseSize: 1000
+  noiseSize: 900
+  noiseFrequency: 0
+  noiseOffset: 0.89
 --- !u!1001 &595710597
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -373,7 +375,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 106b83f042c896c4497035550a96c84e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -9.91
+      value: -9.63
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 106b83f042c896c4497035550a96c84e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -911,7 +913,7 @@ Transform:
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
   m_LocalRotation: {x: 0.083772756, y: -0.85900223, z: 0.087749444, w: 0.49739066}
-  m_LocalPosition: {x: 12.47, y: 4.7, z: -5.18}
+  m_LocalPosition: {x: 14.18, y: 4.34, z: -4.24}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
