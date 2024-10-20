@@ -1,4 +1,4 @@
-Shader "Custom/Lightmap"
+Shader "Custom/CelShader"
 {
     Properties
     {
@@ -20,6 +20,8 @@ Shader "Custom/Lightmap"
 
         [Header(Shadow Setting)]
         [Space(5)]
+        _EdgeMin ("Edge Min", Range(0, 1)) = 0
+        _EdgeMax ("Edge Max", Range(0, 1)) = 0
         _FirstShadowMulColor ("First Shadow Color", Color) = (.7, .7, .7, 1.0) // _ShadowMultColor
         _FirstShadowRange ("First Shadow Range", Range(0, 1)) = 0.5    // _ShadowArea
 
@@ -66,6 +68,8 @@ Shader "Custom/Lightmap"
             float _FaceShadowPow;
 
             // Shadow data
+            half _EdgeMin;
+            half _EdgeMax;
 	        half3 _FirstShadowMulColor;
             half _FirstShadowRange;
 
@@ -118,11 +122,15 @@ Shader "Custom/Lightmap"
                 half3 worldNormal = normalize(i.worldNormal);
                 half3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz); // pos/dir of main light source
                 // I = max(dot(n, l) * 0.5 + 0.5, 0)
-                half halfLambert = dot(worldNormal, worldLightDir) * 0.5 + 0.5; // Intensity
+                half halfLambert = max(dot(worldNormal, worldLightDir) * 0.5 + 0.5, 0); // Intensity
+                halfLambert = smoothstep(_EdgeMin, _EdgeMax, halfLambert);
 
                 // base color
                 half4 mainTex = tex2D(_MainTex, i.uv); // texture sampling
 
+                
+
+                
                 // Light map
                 half4 lightMapColor = tex2D(_LightMap, i.uv);
                 half3 firstShadowColor = mainTex.rgb * _FirstShadowMulColor.rgb;
@@ -139,13 +147,7 @@ Shader "Custom/Lightmap"
                 half3 darkShadowColor = sFactor2 * firstShadowColor.rgb + (1 - sFactor2) * secondShadowColor.rgb;
 
 
-                // Ramp sampling
-                // use light intensity as U
-                /* 
-                    9 ramps in this case
-                    0.5 step
-                    get center of height of each ramp
-                */
+             
                 float2 rampUV = float2(halfLambert, 0.5);
                 half4 ramp = tex2D(_RampTex, rampUV);
 
@@ -154,10 +156,6 @@ Shader "Custom/Lightmap"
                 float sFactorFinal = floor(lightMapColor.g * _MainColor.r + 0.9);
                 // finalColor.rgb = shallowShadowColor; 
                 finalColor.rgb = sFactorFinal * shallowShadowColor.rgb + (1 - sFactorFinal) * darkShadowColor.rgb; 
-                
-                // half3 diffuse = halfLambert > _FirstShadowRange ? _MainColor : _FirstShadowMulColor.rgb;
-                // diffuse *= mainTex;
-                // col.rgb = _LightColor0 * diffuse;
 
             #if ENABLE_FACE_SHADOW_MAP
                 // Chara direction vector in world space
@@ -185,82 +183,81 @@ Shader "Custom/Lightmap"
             
             #endif
 
-                return lightMapColor.g;
-                // return finalColor;
+                return finalColor;
             }
 
             ENDCG
         }
 
-        // Pass
-	    // {
-	    //     Tags {"LightMode"="ForwardBase"}
+        Pass
+	    {
+	        Tags {"LightMode"="ForwardBase"}
 			 
-        //     Cull Front
+            Cull Front
             
-        //     CGPROGRAM
-        //     #pragma vertex vert
-        //     #pragma fragment frag
-        //     #include "UnityCG.cginc"
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #include "UnityCG.cginc"
 
-        //     fixed _OutlineWidth;
-        //     fixed4 _OutLineColor;
+            fixed _OutlineWidth;
+            fixed4 _OutLineColor;
 
-        //     sampler2D _MainTex;
-        //     float4 _MainTex_ST;
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
 
-        //     struct a2v 
-	    //     {
-        //         float4 vertex : POSITION;
-        //         float3 normal : NORMAL;
-        //         float2 uv : TEXCOORD0;
-        //         float4 vertColor : COLOR;
-        //         float4 tangent : TANGENT;
-        //     };
+            struct a2v 
+	        {
+                float4 vertex : POSITION;
+                float3 normal : NORMAL;
+                float2 uv : TEXCOORD0;
+                float4 vertColor : COLOR;
+                float4 tangent : TANGENT;
+            };
 
-        //     struct v2f
-	    //     {
-        //         float4 pos : SV_POSITION;
-        //         float3 vColor : COLOR;
-        //         float2 uv : TEXCOORD0;
-        //     };
+            struct v2f
+	        {
+                float4 pos : SV_POSITION;
+                float3 vColor : COLOR;
+                float2 uv : TEXCOORD0;
+            };
 
-        //     v2f vert (a2v v) 
-	    //     {
-        //         v2f o;
-		//         UNITY_INITIALIZE_OUTPUT(v2f, o);
-        //         // o.pos = UnityObjectToClipPos(float4(v.vertex.xyz + v.normal * _OutlineWidth * 0.1 ,1));//顶点沿着法线方向外扩(模型空间)
-        //         // solution: calculate in NDC space
-        //         float4 pos = UnityObjectToClipPos(v.vertex); // v in NDC
-        //         // Model -> View
-        //         float3 viewNormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal.xyz);
-        //         // View -> NDC
-        //         float3 ndcNormal = normalize(TransformViewToProjection(viewNormal.xyz)) * pos.w;//将法线变换到NDC空间
+            v2f vert (a2v v) 
+	        {
+                v2f o;
+		        UNITY_INITIALIZE_OUTPUT(v2f, o);
+                // o.pos = UnityObjectToClipPos(float4(v.vertex.xyz + v.normal * _OutlineWidth * 0.1 ,1));//顶点沿着法线方向外扩(模型空间)
+                // solution: calculate in NDC space
+                float4 pos = UnityObjectToClipPos(v.vertex); // v in NDC
+                // Model -> View
+                float3 viewNormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal.xyz);
+                // View -> NDC
+                float3 ndcNormal = normalize(TransformViewToProjection(viewNormal.xyz)) /** pos.w*/;// transform normal to NDC space 
                 
-        //         // Calculate screen aspect ratio in camera space
-        //         float4 nearUpperRight = mul(unity_CameraInvProjection, float4(1, 1, UNITY_NEAR_CLIP_VALUE, _ProjectionParams.y));//将近裁剪面右上角位置的顶点变换到观察空间
-        //         float aspect = abs(nearUpperRight.y / nearUpperRight.x);//求得屏幕宽高比
-        //         ndcNormal.x *= aspect;
+                // Calculate screen aspect ratio in camera space
+                float4 nearUpperRight = mul(unity_CameraInvProjection, float4(1, 1, UNITY_NEAR_CLIP_VALUE, _ProjectionParams.y));//将近裁剪面右上角位置的顶点变换到观察空间
+                float aspect = abs(nearUpperRight.y / nearUpperRight.x);//求得屏幕宽高比
+                ndcNormal.x *= aspect;
 
-        //         // outline is 2d no need to consider z (depth)
-        //         pos.xy += ndcNormal.xy * _OutlineWidth * 0.01 * v.vertColor.a; // use alpha to adjust width
-        //         o.pos = pos;
-        //         // vertex color (doesn't exist for this model)
-        //         o.vColor = v.vertColor.rgb;
+                // outline is 2d no need to consider z (depth)
+                pos.xy += ndcNormal.xy * _OutlineWidth * 0.01; // * v.vertColor.a; // use alpha to adjust width
+                o.pos = pos;
+                // vertex color (doesn't exist for this model)
+                o.vColor = v.vertColor.rgb;
 
-        //         // transmit uv
-        //         o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                // transmit uv
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 
-        //         return o;
-        //     }
+                return o;
+            }
 
-        //     fixed4 frag(v2f i) : SV_TARGET 
-	    //     {   
-        //         fixed4 texColor = tex2D(_MainTex, i.uv);
-        //         //return fixed4(_OutLineColor.rgb * texColor.rgb, 1.0);
-        //          return _OutLineColor;
-        //     }
-        //     ENDCG
-        // }
+            fixed4 frag(v2f i) : SV_TARGET 
+	        {   
+                fixed4 texColor = tex2D(_MainTex, i.uv);
+                return fixed4(_OutLineColor.rgb * texColor.rgb, 1.0);
+                // return _OutLineColor;
+            }
+            ENDCG
+        }
     }
 }

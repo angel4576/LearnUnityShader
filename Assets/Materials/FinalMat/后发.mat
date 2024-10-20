@@ -73,6 +73,8 @@ Material:
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
+    - _EdgeMax: 0.59
+    - _EdgeMin: 0.32
     - _EnableFaceShadowMap: 0
     - _FaceShadowPow: 1
     - _FirstShadowRange: 0.5
@@ -82,7 +84,7 @@ Material:
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
-    - _OutlineWidth: 0.56
+    - _OutlineWidth: 0.22
     - _Parallax: 0.02
     - _SecondShadowRange: 0.5
     - _ShadowRange: 0.5

@@ -85,7 +85,18 @@ Shader "Custom/ParallaxMapShader"
                     currentLayerDepth += layerDepth;
                 }
 
-                return currentTexcoord;
+                // 视差遮挡映射
+                float2 prevTexcoord = currentTexcoord - deltaTexcoords; 
+                // get depth after and before collision
+                float afterDepth = currentSampleDepth - currentLayerDepth; // 采样深度 - 层深
+                float prevLayerDepth = currentLayerDepth - layerDepth;
+                float beforeDepth = tex2D(_HeightMap, prevTexcoord).r - prevLayerDepth;
+
+                float weight = afterDepth / (afterDepth - beforeDepth);
+
+                float2 finalTexcoord = lerp(currentTexcoord, prevTexcoord, weight); // x * (1-s) + y * s
+                // finalTexcoord = prevTexcoord * weight + currentTexcoord * (1.0 - weight);
+                return finalTexcoord;
 
             }
 
@@ -106,6 +117,7 @@ Shader "Custom/ParallaxMapShader"
 
             fixed4 frag (v2f i) : SV_Target
             {
+                // TBN
                 float3x3 tangentTrans = transpose(float3x3(i.worldTangent, i.worldBiTangent, i.worldNormal));
                 float3 vDir = UnityWorldSpaceViewDir(i.worldPos);
                 vDir = normalize(vDir);

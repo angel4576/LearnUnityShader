@@ -232,11 +232,11 @@ Shader "Custom/Outline"
 		        UNITY_INITIALIZE_OUTPUT(v2f, o);
                 // o.pos = UnityObjectToClipPos(float4(v.vertex.xyz + v.normal * _OutlineWidth * 0.1 ,1));//顶点沿着法线方向外扩(模型空间)
                 // solution: calculate in NDC space
-                float4 pos = UnityObjectToClipPos(v.vertex); // v in NDC
+                float4 pos = UnityObjectToClipPos(v.vertex); 
                 // Model -> View
                 float3 viewNormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal.xyz);
-                // View -> NDC
-                float3 ndcNormal = normalize(TransformViewToProjection(viewNormal.xyz)) * pos.w;//将法线变换到NDC空间
+               
+                float3 ndcNormal = normalize(TransformViewToProjection(viewNormal.xyz));
                 
                 // Calculate screen aspect ratio in camera space
                 float4 nearUpperRight = mul(unity_CameraInvProjection, float4(1, 1, UNITY_NEAR_CLIP_VALUE, _ProjectionParams.y));//将近裁剪面右上角位置的顶点变换到观察空间

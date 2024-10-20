@@ -3,9 +3,14 @@ Shader "Custom/PBRShader"
     Properties
     {
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
-
+        
         _MainTex ("Texture", 2D) = "white" {}
         [Normal]_NormalMap ("Normal Map", 2D) = "white" {}
+
+        _HeightMap ("Height Map", 2D) = "White" {}
+        _HeightScale ("Height Scale", Range(0, 1)) = 0
+        _MaxLayerNum ("Max Layer Number", float) = 1
+        _MinLayerNum ("Min Layer Number", float) = 2
 
         _MetallicMap ("Metallic Map", 2D) = "white" {}
         _Metallic ("Metallic", Range(0, 1)) = 0
@@ -52,6 +57,11 @@ Shader "Custom/PBRShader"
             sampler2D _NormalMap;
             float4 _NormalMap_ST;
 
+            sampler2D _HeightMap;
+            float _HeightScale;
+            float _MaxLayerNum;
+            float _MinLayerNum;
+
             sampler2D _MetallicMap;
             half _Metallic;
             sampler2D _RoughnessMap;
@@ -63,6 +73,40 @@ Shader "Custom/PBRShader"
             float4 _Specular;
             float _Gloss;
 
+
+            float2 SteepParallaxMapping(float2 uv, float3 vDir)
+            {
+                // 优化：根据视角来决定分层数(因为视线方向越垂直于平面，纹理偏移量较少，不需要过多的层数来维持精度)
+                float layerNum = lerp(_MaxLayerNum, _MinLayerNum, dot(float3(0, 0, 1), vDir));
+                float layerDepth = 1.0f / layerNum;
+                float2 deltaTexcoords = 0; // 层深对应偏移量
+
+                deltaTexcoords = vDir.xy / layerNum * _HeightScale; // z轴总深为1 每层偏移1/layerNum; xy方向总深为viewDir(归一化) 每层偏移v/layerNum
+                float2 currentTexcoord = uv;
+                float currentSampleDepth = tex2D(_HeightMap, currentTexcoord).r; // 当前纹理坐标采样结果
+                float currentLayerDepth = 0; // 当前层的深度
+
+                [unroll(100)] // 完全展开循环 限制循环次数（100）
+                while(currentLayerDepth < currentSampleDepth)
+                {
+                    currentTexcoord += deltaTexcoords;
+                    currentSampleDepth = tex2D(_HeightMap, currentTexcoord).r;
+                    currentLayerDepth += layerDepth;
+                }
+
+                // 视差遮挡映射
+                float2 prevTexcoord = currentTexcoord - deltaTexcoords; 
+                // get depth after and before collision
+                float afterDepth = currentSampleDepth - currentLayerDepth; // 采样深度 - 层深
+                float prevLayerDepth = currentLayerDepth - layerDepth;
+                float beforeDepth = tex2D(_HeightMap, prevTexcoord).r - prevLayerDepth;
+
+                float weight = afterDepth / (afterDepth - beforeDepth);
+
+                float2 finalTexcoord = lerp(currentTexcoord, prevTexcoord, weight); // x * (1-s) + y * s
+                // finalTexcoord = prevTexcoord * weight + currentTexcoord * (1.0 - weight);
+                return finalTexcoord;
+            }
 
             // Normal Distribution Function
             float NormalDistributionGGX(float nDotH, float roughness){
@@ -220,7 +264,7 @@ Shader "Custom/PBRShader"
                 float3 directLight = kd * DirectDiffuse + DirectSpecular;
 
 
-                // -------------- Indirect Light ---------------
+                // -------------- Indirect Light --------------- 有时间再研究一下
                 float3 irradiance = texCUBE(_IrradianceCubemap, nDir).rgb;
                 float3 indirectDiffuse = 0; // = irradiance * mainTex;
 

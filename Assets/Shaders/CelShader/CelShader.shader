@@ -20,6 +20,8 @@ Shader "Custom/CelShader"
 
         [Header(Shadow Setting)]
         [Space(5)]
+        _EdgeMin ("Edge Min", Range(0, 1)) = 0
+        _EdgeMax ("Edge Max", Range(0, 1)) = 0
         _FirstShadowMulColor ("First Shadow Color", Color) = (.7, .7, .7, 1.0) // _ShadowMultColor
         _FirstShadowRange ("First Shadow Range", Range(0, 1)) = 0.5    // _ShadowArea
 
@@ -66,6 +68,8 @@ Shader "Custom/CelShader"
             float _FaceShadowPow;
 
             // Shadow data
+            half _EdgeMin;
+            half _EdgeMax;
 	        half3 _FirstShadowMulColor;
             half _FirstShadowRange;
 
@@ -118,7 +122,8 @@ Shader "Custom/CelShader"
                 half3 worldNormal = normalize(i.worldNormal);
                 half3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz); // pos/dir of main light source
                 // I = max(dot(n, l) * 0.5 + 0.5, 0)
-                half halfLambert = dot(worldNormal, worldLightDir) * 0.5 + 0.5; // Intensity
+                half halfLambert = max(dot(worldNormal, worldLightDir) * 0.5 + 0.5, 0); // Intensity
+                halfLambert = smoothstep(_EdgeMin, _EdgeMax, halfLambert);
 
                 // base color
                 half4 mainTex = tex2D(_MainTex, i.uv); // texture sampling
@@ -236,7 +241,7 @@ Shader "Custom/CelShader"
                 // Model -> View
                 float3 viewNormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal.xyz);
                 // View -> NDC
-                float3 ndcNormal = normalize(TransformViewToProjection(viewNormal.xyz)) * pos.w;// transform normal to NDC space 
+                float3 ndcNormal = normalize(TransformViewToProjection(viewNormal.xyz)) /** pos.w*/;// transform normal to NDC space 
                 
                 // Calculate screen aspect ratio in camera space
                 float4 nearUpperRight = mul(unity_CameraInvProjection, float4(1, 1, UNITY_NEAR_CLIP_VALUE, _ProjectionParams.y));//将近裁剪面右上角位置的顶点变换到观察空间
