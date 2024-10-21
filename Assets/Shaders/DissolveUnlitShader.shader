@@ -22,7 +22,7 @@ Shader "Custom/DissolveUnlitShader"
         Blend SrcAlpha OneMinusSrcAlpha
 
         Pass
-        {
+        {   
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -66,7 +66,7 @@ Shader "Custom/DissolveUnlitShader"
                 o.worldPos = mul(unity_ObjectToWorld, v.vertex);
                 o.worldNormal = normalize(UnityObjectToWorldNormal(v.normal));
 
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                o.uv = TRANSFORM_TEX(v.uv, _NoiseTex);
 
                 return o;
             }

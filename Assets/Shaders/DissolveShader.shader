@@ -15,7 +15,8 @@ Shader "Custom/DissolveShader"
             "Queue"="Transparent"
         }
         LOD 200
-        // ZWrite Off
+        ZWrite Off
+        Cull Off
         Blend SrcAlpha OneMinusSrcAlpha
 
         CGPROGRAM

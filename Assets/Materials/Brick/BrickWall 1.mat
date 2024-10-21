@@ -73,7 +73,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _HeightScale: 0.045
+    - _HeightScale: 0.056
     - _MaxLayerNum: 10
     - _Metallic: 0
     - _MinLayerNum: 30
