@@ -1,6 +1,8 @@
 # Learn Unity Shader
 Collection of demos and study logs of my Unity Shader self-study  
 
+**Unity Editor Version: 2022.3.43f1**  
+
 ## Dissolve
 Simple dissolve effect
 ![Dissolve Picture](/Assets/Img/SimpleDissolve.png)
