@@ -8,6 +8,7 @@ Shader "Custom/SphereMaskSurfShader"
         _Metallic ("Metallic", Range(0,1)) = 0.0
         
         _RevealInSphere("Reveal Object in sphere", Range(0,1)) = 0
+        _EdgeWidth ("Edge Width", Range(0, 1)) = 0.1
 
         [HDR]_Emission("Emission", Color) = (1,1,1,1)
         // _NoiseSize("Noise Size", float) = 1
@@ -27,7 +28,7 @@ Shader "Custom/SphereMaskSurfShader"
         // Use shader model 3.0 target, to get nicer looking lighting
         #pragma target 3.0
 
-        #include "../ShaderLib/noiseSimplex.cginc"
+        #include "../../ShaderLib/noiseSimplex.cginc"
 
         sampler2D _MainTex;
 
@@ -50,6 +51,7 @@ Shader "Custom/SphereMaskSurfShader"
         // Emission
         fixed4 _Emission;
         float _NoiseSize;
+        half _EdgeWidth;
 
         // Simplex Noise Control
         float _NoiseFrequency;
@@ -82,7 +84,7 @@ Shader "Custom/SphereMaskSurfShader"
             float simplexNoise = snoise(IN.worldPos) * _NoiseFrequency + _NoiseOffset;
             
             half d = distance(_Position, IN.worldPos) + simplexNoise;
-            half sum = saturate((d - _Radius) / _Softness); // clamp to 0-1
+            half sum = saturate((d - _Radius) / _Softness); // clamp to 0-1 (dist between pos and circle ring)
             
             if(_RevealInSphere > 0.5f)
             {
@@ -90,11 +92,11 @@ Shader "Custom/SphereMaskSurfShader"
             }
 
             // fixed4 lerpColor = lerp(fixed4(c_grayscale, 1), c, sum);
-            clip(sum - 0.1);
+            clip(sum - 0.01);
            
             // Emission Noise
             float squares = step(0.5, random(floor(IN.uv_MainTex * _NoiseSize)));
-            half emissionRing = step(sum - 0.1, 0.1) * squares;
+            half emissionRing = step(sum - 0.01, _EdgeWidth) * squares;
 
             o.Albedo = c.rgb;
             o.Emission = _Emission * emissionRing;

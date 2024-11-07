@@ -345,13 +345,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 476fe0bd718c1534184f0687723e6427, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 0.01
+  radius: 2.62
   maxRadius: 12
   minRadius: 0.01
   speed: 0
   softness: 0.81
   noiseSize: 900
-  noiseFrequency: 0
+  noiseFrequency: 0.415
   noiseOffset: 0.89
 --- !u!1001 &595710597
 PrefabInstance:
@@ -676,7 +676,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 28e0ed77d8c231542b5e6f2de0efa9b7, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -10.62
+      value: -10.133982
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 28e0ed77d8c231542b5e6f2de0efa9b7, type: 3}
       propertyPath: m_LocalRotation.w

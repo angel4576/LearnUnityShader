@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-//[ExecuteInEditMode]
+[ExecuteInEditMode]
 public class DissolveController : MonoBehaviour
 {
     [Range(0, 1)]
@@ -20,7 +20,7 @@ public class DissolveController : MonoBehaviour
     {
         Shader.SetGlobalFloat("_DissolveThreshold", threshold);
 
-        threshold -= changeSpeed * Time.deltaTime;
+        //threshold -= changeSpeed * Time.deltaTime;
         if(threshold <= 0.001f)
         {
             StartCoroutine(CoolDown());

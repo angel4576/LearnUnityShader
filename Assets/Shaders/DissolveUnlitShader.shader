@@ -4,9 +4,9 @@ Shader "Custom/DissolveUnlitShader"
     {
         _Color ("Color", Color) = (1,1,1,1)
 
-        _MainTex ("Texture", 2D) = "white" {}
+        _MainTex ("Texture", 2D) = "red" {}
         _NoiseTex ("Noise Texture", 2D) = "white" {}
-        // _DissolveThreshold ("Dissolve Threshold", Range(0, 1)) = 0.5
+        _DissolveThreshold ("Dissolve Threshold", Range(0, 1)) = 0.5
         _EdgeWidth ("Edge Width", Range(0, 0.5)) = 0.1 
         _EdgeColor ("Edge Color", Color) = (1,1,1,1)
     }
@@ -74,7 +74,7 @@ Shader "Custom/DissolveUnlitShader"
             fixed4 frag (v2f i) : SV_Target
             {
                 // sample the texture
-                fixed4 col = tex2D(_MainTex, i.uv);
+                fixed4 baseColor = tex2D(_MainTex, i.uv);
                 fixed noise = tex2D(_NoiseTex, i.uv).r;
 
                 fixed3 lDir = normalize(UnityWorldSpaceLightDir(i.worldPos.xyz));
@@ -82,14 +82,21 @@ Shader "Custom/DissolveUnlitShader"
 
                 // diffuse
                 fixed NDotL = max(0, dot(nDir, lDir));
-                float3 diffuse = _Color * _LightColor0.rgb * (NDotL * 0.5 + 0.5);
+                float3 diffuse = baseColor.rgb * _LightColor0.rgb * (NDotL * 0.5 + 0.5);
                 
+                // lerp edge color
                 fixed dissolveFactor = smoothstep(_DissolveThreshold - _EdgeWidth, _DissolveThreshold, noise);
-                fixed3 lerpColor = lerp(diffuse, _EdgeColor, dissolveFactor);
+                fixed3 lerpColor = lerp(diffuse, _EdgeColor.rgb, dissolveFactor);
+                
                 // noise > threshold -> dissolve (alpha = 0)
                 fixed alpha = step(noise, _DissolveThreshold);
+                // fixed edge color
+                fixed alpha2 = step(noise, _DissolveThreshold - _EdgeWidth);
+                fixed edgeAlpha = alpha - alpha2; // dissolve less - dissolve more 
+                fixed3 edgeColor = edgeAlpha * _EdgeColor;
 
                 fixed4 finalColor;
+                //finalColor = float4(edgeColor + diffuse, alpha2);
                 finalColor = float4(lerpColor, alpha);
                 return finalColor;
             }

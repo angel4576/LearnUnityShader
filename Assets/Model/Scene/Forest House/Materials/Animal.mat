@@ -23,6 +23,14 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _HeightMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _IrradianceCubemap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _LightMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -31,29 +39,54 @@ Material:
         m_Texture: {fileID: 2800000, guid: cadb7adf52ba3b34c9e2842049b3daf1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _MetallicMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NoiseTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _RampTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RoughnessMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _DissolveThreshold: 0.5
     - _EnableFaceShadowMap: 0
     - _FaceShadowPow: 1
     - _FirstShadowRange: 0.5
+    - _Gloss: 20
     - _Glossiness: 0.5
+    - _HeightScale: 0
+    - _MaxLayerNum: 1
     - _Metallic: 0
+    - _MinLayerNum: 2
     - _NoiseSize: 10
     - _OutlineWidth: 0.24
     - _RevealInSphere: 0
+    - _Roughness: 0
     - _SecondShadowRange: 0.5
     - _ShadowSmooth: 0.2
     - _Softness: 0
     - _Threshold: 0
     m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Diffuse: {r: 1, g: 1, b: 1, a: 1}
     - _Emission: {r: 0, g: 0.3272958, b: 2.312756, a: 1}
     - _FirstShadowMulColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
     - _MainColor: {r: 1, g: 1, b: 1, a: 1}
     - _OutLineColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     - _SecondShadowMulColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _Specular: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
