@@ -7,11 +7,12 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: MI_UP
+  m_Name: "T2\u540E\u53D1"
   m_Shader: {fileID: 4800000, guid: f9425493bbc4b44419ae32ea7a5d5080, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - IS_YUANSHEN
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -44,11 +45,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _LightMap:
-        m_Texture: {fileID: 2800000, guid: 81617fed09e55db46942711ff1f037fc, type: 3}
+        m_Texture: {fileID: 2800000, guid: 65e7ad29b4c1ab041b591bb0052722db, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: efc026d27b1ce1d42bd23d6c1d460053, type: 3}
+        m_Texture: {fileID: 2800000, guid: 315bd1f8b39232d4395d469da6ba12ad, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -75,15 +76,17 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0.7648304
+    - _Glossiness: 0.82000923
     - _GlossyReflections: 1
+    - _IS_: 0
+    - _IsYuanshen: 1
     - _Metallic: 0
     - _MiddleThreshold: 0.4
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _Roughness: 0.918
-    - _Smoothness: 0.068
+    - _Smoothness: 0.126
     - _SmoothnessTextureChannel: 0
     - _SpecThreshold: 0.922
     - _SpecularHighlights: 1
@@ -91,7 +94,7 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _BoundaryColor: {r: 0.3433962, g: 0.24006043, b: 0.19631894, a: 1}
+    - _BoundaryColor: {r: 0.9547169, g: 0.16512549, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []

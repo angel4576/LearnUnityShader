@@ -2,7 +2,10 @@ Shader "Custom/ToonShader2"
 {
     Properties
     {
+        [Header(Texture)]
+        [Space(5)]
         _MainTex ("Texture", 2D) = "white" {}
+        _LightMap ("LightMap", 2D) = "white" {}
         
         _BrightThreshold ("Bright Threshold", Range(0, 1)) = 0.8
         _MiddleThreshold ("Middle Threshold", Range(0, 1)) = 0.5
@@ -20,6 +23,8 @@ Shader "Custom/ToonShader2"
 //        _BoundaryMax ("Boundary Max", Range(0, 0.5)) = 0.2
         _BoundarySmoothness ("Boundary Smoothness", Range(0, 0.5)) = 0.1
         _BoundaryColor ("Boundary Color", Color) = (1,1,1)
+        
+        [Toggle(IS_YUANSHEN)]_IsYuanshen ("Is yuanshen model", float) = 0 // ?
     }
     SubShader
     {
@@ -33,6 +38,8 @@ Shader "Custom/ToonShader2"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+
+            #pragma shader_feature_local_fragment IS_YUANSHEN
 
             #include "UnityCG.cginc"
             #include "Lighting.cginc"
@@ -56,6 +63,9 @@ Shader "Custom/ToonShader2"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
+
+            sampler2D _LightMap;
+            float4 _LightMap_ST;
 
             half _BrightThreshold;
             half _MiddleThreshold;
@@ -143,16 +153,30 @@ Shader "Custom/ToonShader2"
                 intensity = intensity + fresnelFactor; // diffuse * intensity + diffuse * fresnel
                 fixed3 diffuse = mainTexColor.rgb * _LightColor0.rgb * intensity;
 
+                // LightMap
+                fixed3 lightMapColor = tex2D(_LightMap, i.uv);
+                #if IS_YUANSHEN
+                    fixed specFactor = lightMapColor.b;
+                    fixed smoothness = lightMapColor.r; // use this channel as smoothness
+                #else
+                    fixed specFactor = lightMapColor.r;
+                    fixed smoothness = lightMapColor.b;
+                #endif
+
+                fixed roughness = 1.0 - smoothness;
+
                 // Specular
                 float NDF = DistributionGGX(NDotH, _Roughness); // control spec intensity
                 float maxSpecIntensity = DistributionGGX(1.0, _Roughness);
+                //float maxSpecIntensity = DistributionGGX(1.0, roughness);
                 float specThreshold = maxSpecIntensity * _SpecThreshold;
                 half specSmooth = smoothstep(specThreshold-_Smoothness, specThreshold+_Smoothness, NDF);
                 fixed3 specular = specSmooth * (maxSpecIntensity+specThreshold) * 0.5; // specSmooth * NDF
+
+                specular *= specFactor;
                 
-                
-                fixed3 finalColor = diffuse + boundColor/*+ boundColor + specular*/ ;
-                // finalColor = specular;
+                fixed3 finalColor = diffuse + specular/*+ boundColor + specular*/ ;
+                //finalColor = smoothness;
                 
                 return fixed4(finalColor, 1.0);
             }
