@@ -85,10 +85,11 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Roughness: 0.918
+    - _Roughness: 0.81
     - _Smoothness: 0.126
+    - _SmoothnessFactor: 0.34
     - _SmoothnessTextureChannel: 0
-    - _SpecThreshold: 0.922
+    - _SpecThreshold: 0.31
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0

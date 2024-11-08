@@ -10,11 +10,12 @@ Shader "Custom/ToonShader2"
         _BrightThreshold ("Bright Threshold", Range(0, 1)) = 0.8
         _MiddleThreshold ("Middle Threshold", Range(0, 1)) = 0.5
         _DarkThreshold ("Dark Threshold", Range(0, 1)) = 0.3
-        _Smoothness ("Smoothness", Range(0, 0.5)) = 0.1
+        _Smoothness ("Boundary Smoothness", Range(0, 0.5)) = 0.1
         
         [Header(Specular)]
         [Space(5)]
         _Roughness ("Roughness", Range(0, 1)) = 0.1
+        _SmoothnessFactor ("Smoothness Factor", Range(0, 1)) = 1
         _SpecThreshold ("Specular Threshold", Range(0, 1)) = 0.1
         
         [Header(Boundary)]
@@ -74,6 +75,7 @@ Shader "Custom/ToonShader2"
             
             half _Smoothness;
             half _Roughness;
+            float _SmoothnessFactor;
 
             half _BoundarySmoothness;
             half3 _BoundaryColor;
@@ -115,9 +117,20 @@ Shader "Custom/ToonShader2"
                 float3 lDir = normalize(UnityWorldSpaceLightDir(_WorldSpaceLightPos0.xyz)); // light dir
                 float3 vDir = normalize(UnityWorldSpaceViewDir(i.worldPos.xyz)); // view dir
                 float3 hDir = normalize(vDir + lDir);
+
+                // LightMap
+                fixed3 lightMapColor = tex2D(_LightMap, i.uv);
+                fixed aoFactor = lightMapColor.g;
+                #if IS_YUANSHEN
+                    fixed specFactor = lightMapColor.b;
+                    fixed smoothness = lightMapColor.r; // use this channel as smoothness
+                #else
+                    fixed specFactor = lightMapColor.r;
+                    fixed smoothness = lightMapColor.b;
+                #endif
                 
                 // Lambert
-                float NDotL = max(0, dot(nDir, lDir));
+                float NDotL = max(0, dot(nDir, lDir)) + aoFactor;
 
                 float HDotV = max(0, dot(hDir, vDir));
                 float VDotN = max(0, dot(vDir, nDir));
@@ -148,35 +161,27 @@ Shader "Custom/ToonShader2"
                 
                 // Fresnel for rim light
                 float3 fresnelFactor = FresnelSchlick(VDotN, float3(0.04, 0.04, 0.04)); // basic reflect rate
+                                
 
                 // Diffuse
                 intensity = intensity + fresnelFactor; // diffuse * intensity + diffuse * fresnel
                 fixed3 diffuse = mainTexColor.rgb * _LightColor0.rgb * intensity;
 
-                // LightMap
-                fixed3 lightMapColor = tex2D(_LightMap, i.uv);
-                #if IS_YUANSHEN
-                    fixed specFactor = lightMapColor.b;
-                    fixed smoothness = lightMapColor.r; // use this channel as smoothness
-                #else
-                    fixed specFactor = lightMapColor.r;
-                    fixed smoothness = lightMapColor.b;
-                #endif
-
+                smoothness = 0.9 * (smoothness * _SmoothnessFactor) + 0.05; // map to [.05, .95] to avoid 0 and 1
                 fixed roughness = 1.0 - smoothness;
 
                 // Specular
-                float NDF = DistributionGGX(NDotH, _Roughness); // control spec intensity
-                float maxSpecIntensity = DistributionGGX(1.0, _Roughness);
-                //float maxSpecIntensity = DistributionGGX(1.0, roughness);
+                float NDF = DistributionGGX(NDotH, roughness); // control spec intensity
+                //float maxSpecIntensity = DistributionGGX(1.0, _Roughness);
+                float maxSpecIntensity = DistributionGGX(1.0, roughness);
                 float specThreshold = maxSpecIntensity * _SpecThreshold;
                 half specSmooth = smoothstep(specThreshold-_Smoothness, specThreshold+_Smoothness, NDF);
-                fixed3 specular = specSmooth * (maxSpecIntensity+specThreshold) * 0.5; // specSmooth * NDF
+                fixed3 specular = specSmooth * (maxSpecIntensity+specThreshold) * 0.5 * _LightColor0.rgb; // specSmooth * NDF
 
                 specular *= specFactor;
                 
                 fixed3 finalColor = diffuse + specular/*+ boundColor + specular*/ ;
-                //finalColor = smoothness;
+                // finalColor = NDotL;
                 
                 return fixed4(finalColor, 1.0);
             }

@@ -44,7 +44,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _LightMap:
-        m_Texture: {fileID: 2800000, guid: 8c07618314266e94fa03859ac09d62b2, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -77,6 +77,8 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.7648304
     - _GlossyReflections: 1
+    - _IS_: 0
+    - _IsYuanshen: 0
     - _Metallic: 0
     - _MiddleThreshold: 0.4
     - _Mode: 0
@@ -84,6 +86,7 @@ Material:
     - _Parallax: 0.02
     - _Roughness: 0.918
     - _Smoothness: 0.126
+    - _SmoothnessFactor: 0.19
     - _SmoothnessTextureChannel: 0
     - _SpecThreshold: 0.922
     - _SpecularHighlights: 1
