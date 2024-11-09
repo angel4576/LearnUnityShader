@@ -6,16 +6,25 @@ Shader "Custom/ToonShader2"
         [Space(5)]
         _MainTex ("Texture", 2D) = "white" {}
         _LightMap ("LightMap", 2D) = "white" {}
+        _NormalMap ("NormalMap", 2D) = "white" {}
+        _VCMap ("VC Map", 2D) = "white" {}
+        _Color ("Color", Color) = (1,1,1,1) 
         
+        [Header(Diffuse)]
+        [Space(5)]
         _BrightThreshold ("Bright Threshold", Range(0, 1)) = 0.8
         _MiddleThreshold ("Middle Threshold", Range(0, 1)) = 0.5
         _DarkThreshold ("Dark Threshold", Range(0, 1)) = 0.3
+        _DarkColor ("Dark Color", Color) = (1, 1, 1)
+        _DeepDarkColor ("Deep Dark Color", Color) = (1, 1, 1) 
         _Smoothness ("Boundary Smoothness", Range(0, 0.5)) = 0.1
+        _AOWeight ("AO Weight", Range(0, 1)) = 1
+        _DiffuseBright ("Diffuse Brightness", Range(0, 1)) = 0
         
         [Header(Specular)]
         [Space(5)]
         _Roughness ("Roughness", Range(0, 1)) = 0.1
-        _SmoothnessFactor ("Smoothness Factor", Range(0, 1)) = 1
+        _SmoothnessFactor ("Smoothness Weight", Range(0, 1)) = 1
         _SpecThreshold ("Specular Threshold", Range(0, 1)) = 0.1
         
         [Header(Boundary)]
@@ -26,6 +35,7 @@ Shader "Custom/ToonShader2"
         _BoundaryColor ("Boundary Color", Color) = (1,1,1)
         
         [Toggle(IS_YUANSHEN)]_IsYuanshen ("Is yuanshen model", float) = 0 // ?
+        [Toggle(ENABLE_NORMALMAP)]_EnableNormalmap ("Enable NormalMap", float) = 0 
     }
     SubShader
     {
@@ -41,7 +51,8 @@ Shader "Custom/ToonShader2"
             #pragma fragment frag
 
             #pragma shader_feature_local_fragment IS_YUANSHEN
-
+            #pragma shader_feature_local_fragment ENABLE_NORMALMAP
+            
             #include "UnityCG.cginc"
             #include "Lighting.cginc"
 
@@ -52,6 +63,7 @@ Shader "Custom/ToonShader2"
                 float4 vertex : POSITION;
                 float3 normal : NORMAL;
                 float2 uv : TEXCOORD0;
+                float4 tangent : TANGENT;
             };
 
             struct v2f
@@ -59,6 +71,8 @@ Shader "Custom/ToonShader2"
                 float2 uv : TEXCOORD0;
                 float3 worldPos : TEXCOORD1;
                 float3 worldNormal : TEXCOORD2;
+                float3 worldTangent : TEXCOORD3;
+                float3 worldBitangent : TEXCOORD4;
                 float4 vertex : SV_POSITION;
             };
 
@@ -68,14 +82,26 @@ Shader "Custom/ToonShader2"
             sampler2D _LightMap;
             float4 _LightMap_ST;
 
+            sampler2D _NormalMap;
+            float4 _NormalMap_ST;
+
+            sampler2D _VCMap;
+
+            fixed3 _Color;
+            
             half _BrightThreshold;
             half _MiddleThreshold;
             half _DarkThreshold;
             half _SpecThreshold;
+
+            fixed3 _DarkColor;
+            fixed3 _DeepDarkColor;
             
             half _Smoothness;
             half _Roughness;
             float _SmoothnessFactor;
+            float _AOWeight;
+            half _DiffuseBright;
 
             half _BoundarySmoothness;
             half3 _BoundaryColor;
@@ -96,6 +122,11 @@ Shader "Custom/ToonShader2"
 
                 return a2 / denom;
             }
+
+            float warp(float x, float w)
+            {
+                return (x + w) / (1 + w);
+            }
             
             v2f vert (appdata v)
             {
@@ -104,6 +135,9 @@ Shader "Custom/ToonShader2"
                 o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
                 o.worldNormal = UnityObjectToWorldDir(v.normal);
 
+                o.worldTangent = UnityObjectToWorldDir(v.tangent.xyz);
+                o.worldBitangent = normalize(cross(o.worldNormal, o.worldTangent) * v.tangent.w); // w is used for deciding left/right hand coordinate
+                        
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 return o;
             }
@@ -112,8 +146,20 @@ Shader "Custom/ToonShader2"
             {
                 // sample the texture
                 fixed4 mainTexColor = tex2D(_MainTex, i.uv);
-                
-                float3 nDir = normalize(i.worldNormal);
+                // mainTexColor = fixed4(_Color.rgb, 1);
+
+                fixed3 normalTex = UnpackNormal(tex2D(_NormalMap, i.uv));
+                // TBN matrix
+                float3x3 tangentTrans = transpose(float3x3(i.worldTangent, i.worldBitangent, i.worldNormal));  
+                // Transform normal from tangent space to world space
+                float3 worldNormalTex = mul(tangentTrans, normalTex);
+
+                #if ENABLE_NORMALMAP
+                    float3 nDir = normalize(worldNormalTex);
+                #else
+                    float3 nDir = normalize(i.worldNormal);
+                #endif
+                                
                 float3 lDir = normalize(UnityWorldSpaceLightDir(_WorldSpaceLightPos0.xyz)); // light dir
                 float3 vDir = normalize(UnityWorldSpaceViewDir(i.worldPos.xyz)); // view dir
                 float3 hDir = normalize(vDir + lDir);
@@ -121,6 +167,8 @@ Shader "Custom/ToonShader2"
                 // LightMap
                 fixed3 lightMapColor = tex2D(_LightMap, i.uv);
                 fixed aoFactor = lightMapColor.g;
+                fixed3 VC = tex2D(_VCMap, i.uv).g;
+                
                 #if IS_YUANSHEN
                     fixed specFactor = lightMapColor.b;
                     fixed smoothness = lightMapColor.r; // use this channel as smoothness
@@ -130,8 +178,10 @@ Shader "Custom/ToonShader2"
                 #endif
                 
                 // Lambert
-                float NDotL = max(0, dot(nDir, lDir)) + aoFactor;
-
+                aoFactor = 2.0 * aoFactor - 1.0;
+                float NDotL = max(0, dot(nDir, lDir)) + aoFactor * _AOWeight;
+                NDotL = 0.33 +  NDotL * 0.33; 
+                
                 float HDotV = max(0, dot(hDir, vDir));
                 float VDotN = max(0, dot(vDir, nDir));
                 float NDotH = max(0, dot(nDir, hDir));
@@ -154,7 +204,16 @@ Shader "Custom/ToonShader2"
                 half midDarkWin = darkSmooth - midSmooth;
                 half darkWin = 1 - darkSmooth; // 4 win sum = 1
 
-                half intensity = brightWin * 1.0 + midBrightWin * 0.8 + midDarkWin * 0.5 + darkWin * 0.3; // <= 1
+                // half diffuseIntensity = brightWin * 1.0 + midBrightWin * 0.8 + midDarkWin * 0.5 + darkWin * 0.3; // <= 1
+
+                // Reconstruct light intensity
+                // Small light area -> brighter
+                half diffuseIntensity = brightWin * (1 + _BrightThreshold) * 0.5 // average 
+                            + midBrightWin * (_BrightThreshold + _MiddleThreshold) * 0.5
+                            + midDarkWin * (_MiddleThreshold + _DarkThreshold) * 0.5 * (_DarkColor.rgb * 3 / (_DarkColor.r + _DarkColor.g + _DarkColor.b))
+                            + darkWin * _DarkThreshold * 0.5 * (_DeepDarkColor.rgb * 3 / (_DeepDarkColor.r + _DeepDarkColor.g + _DeepDarkColor.b));
+
+                diffuseIntensity = warp(diffuseIntensity, _DiffuseBright);
                 
                 // half intensity = NDotL > _BrightThreshold ? 1.0 : NDotL > _MiddleThreshold ? 0.8 :
                 // NDotL > _DarkThreshold ? 0.5 : 0.3;
@@ -164,8 +223,8 @@ Shader "Custom/ToonShader2"
                                 
 
                 // Diffuse
-                intensity = intensity + fresnelFactor; // diffuse * intensity + diffuse * fresnel
-                fixed3 diffuse = mainTexColor.rgb * _LightColor0.rgb * intensity;
+                diffuseIntensity = diffuseIntensity + fresnelFactor; // diffuse * intensity + diffuse * fresnel
+                fixed3 diffuse = mainTexColor.rgb * _LightColor0.rgb * diffuseIntensity;
 
                 smoothness = 0.9 * (smoothness * _SmoothnessFactor) + 0.05; // map to [.05, .95] to avoid 0 and 1
                 fixed roughness = 1.0 - smoothness;
@@ -181,11 +240,13 @@ Shader "Custom/ToonShader2"
                 specular *= specFactor;
                 
                 fixed3 finalColor = diffuse + specular/*+ boundColor + specular*/ ;
-                // finalColor = NDotL;
+                // finalColor = diffuse;
                 
                 return fixed4(finalColor, 1.0);
             }
             ENDCG
         }
+
+
     }
 }

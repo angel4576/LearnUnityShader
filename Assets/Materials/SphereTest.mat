@@ -63,15 +63,20 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _VCMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AOWeight: 0
     - _BoundaryMax: 0.174
     - _BoundaryMin: 0.12
     - _BoundarySmoothness: 0.136
-    - _BrightThreshold: 0.527
+    - _BrightThreshold: 0.59
     - _BumpScale: 1
     - _Cutoff: 0.5
-    - _DarkThreshold: 0.2
+    - _DarkThreshold: 0.35
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
@@ -79,12 +84,13 @@ Material:
     - _GlossyReflections: 1
     - _IsYuanshen: 0
     - _Metallic: 0
-    - _MiddleThreshold: 0.4
+    - _MiddleThreshold: 0.52
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _Roughness: 0.918
-    - _Smoothness: 0.11
+    - _Smoothness: 0.044
+    - _SmoothnessFactor: 1
     - _SmoothnessTextureChannel: 0
     - _SpecThreshold: 0.922
     - _SpecularHighlights: 1
@@ -94,5 +100,7 @@ Material:
     m_Colors:
     - _BoundaryColor: {r: 1, g: 0.028076375, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _DarkColor: {r: 0.04, g: 0.058, b: 0.08679239, a: 1}
+    - _DeepDarkColor: {r: 0.10188679, g: 0.25, b: 0.10188679, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
