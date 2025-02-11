@@ -1,4 +1,4 @@
-Shader "Custom/ToonShader2"
+Shader "Custom/NPR/ImproveTwoTone"
 {
     Properties
     {
@@ -186,7 +186,7 @@ Shader "Custom/ToonShader2"
                 
                 // Lambert
                 aoFactor = 2.0 * aoFactor - 1.0;
-                float NDotL = max(0, dot(nDir, lDir)) + aoFactor * _AOWeight;
+                float NDotL = max(0, dot(nDir, lDir));// + aoFactor * _AOWeight;
                 NDotL = 0.33 +  NDotL * 0.33; 
                 
                 float HDotV = max(0, dot(hDir, vDir));
