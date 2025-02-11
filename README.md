@@ -34,6 +34,7 @@ Refines the white-model Toon Shading approach with:
 - Smoother light/shadow transitions
 - Added specular and rim lighting
 
+![Toon Sphere](/Assets/Img/BetterToonSphere.png)
 ![White Yinlin Front](/Assets/Img/whiteYinlin.png)
 ![White Yinlin Back](/Assets/Img/whiteYinlinBack.png)
 
