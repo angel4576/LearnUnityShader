@@ -20,7 +20,7 @@ Implements a sphere-based mask to create a world-switch effect. Incorporates Sim
 Explores stylized toon shading
 - Left: Unity's built-in Standard Shader
 - Right: A simplified two-tone approach
-- middle: The final optimized toon shader for this demo
+- Middle: The final optimized toon shader for this demo
 
 **Front View**
 ![Toon shading1](/Assets/Img/toon2.png)
